@@ -23,8 +23,9 @@ module "networking" {
   private_subnets    = var.private_subnets
 }
 
-module "security" {
-  source = "./modules/security"
+module "security-groups" {
+  source = "./modules/security-groups"
+  region = var.region
   vpc_id = module.networking.vpc_id
   depends_on = [
     module.networking
@@ -33,10 +34,19 @@ module "security" {
 
 module "database" {
   source                = "./modules/database"
-  vpc_security_group_id = module.security.db_sg_id
+  vpc_security_group_id = module.security-groups.db_sg_id
   subnet_group_name     = module.networking.subnet_group_name
   availability_zone     = var.availability_zone
   depends_on = [
     module.networking
+  ]
+}
+
+module "policies" {
+  source = "./modules/policies"
+  region = var.region
+  rds_secret_arn = module.database.rds_secret_arn
+  depends_on = [
+    module.database
   ]
 }
