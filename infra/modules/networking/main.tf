@@ -15,5 +15,15 @@ resource "aws_subnet" "private" {
   count             = length(var.private_subnets)
 }
 
+resource "aws_db_subnet_group" "main" {
+  name = "private_subnet_group"
+  subnet_ids = concat([for subnet in aws_subnet.private : subnet.id],
+  [for subnet in aws_subnet.private : subnet.id])
+
+  tags = {
+    Name = "DB subnet group"
+  }
+}
+
 
 

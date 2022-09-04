@@ -6,3 +6,8 @@ variable "vpc_security_group_id" {
 variable "availability_zone" {
   default = "eu-central-1a"
 }
+
+variable "subnet_group_name" {
+  type        = string
+  description = "The name of the subnetgroup that the DB will exist in."
+}
