@@ -108,8 +108,8 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: cbdb-container-registry
-          IMAGE_TAG: cbdb-api-image
+          ECR_REPOSITORY: pipeline-registry
+          IMAGE_TAG: the-pipeline-api-image
         run: |
           cd api
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -118,20 +118,20 @@ jobs:
 
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition cbdb-api --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition the-pipeline-api --query taskDefinition > task-definition.json
 
       - name: Fill in the new image ID in the ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: cbdb-api-container
+          container-name: the-pipeline-api-image-api-container
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: cbdb-service
-          cluster: cbdb-cluster
+          service: the-pipeline-api-image-service
+          cluster: the-pipeline-api-image-cluster
           wait-for-service-stability: true
