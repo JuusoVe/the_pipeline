@@ -53,10 +53,6 @@ resource "aws_security_group" "sg_rds" {
   }
 }
 
-# POLICIES
-
-# Define the permission to assume a IAM Role as a data source for TF
-
 
 
 
