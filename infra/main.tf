@@ -35,7 +35,6 @@ module "security-groups" {
 module "database" {
   source                = "./modules/database"
   vpc_security_group_id = module.security-groups.db_sg_id
-  subnet_group_name     = module.networking.subnet_group_name
   availability_zone     = var.availability_zone
   depends_on = [
     module.networking

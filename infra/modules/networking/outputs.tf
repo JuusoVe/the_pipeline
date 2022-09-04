@@ -1,8 +1,3 @@
-output "subnet_group_name" {
-  description = "Subnet group name."
-  value       = var.database_subnet_group_name
-}
-
 output "private_subnets" {
   description = "List of private subnets."
   value       = aws_subnet.private

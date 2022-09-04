@@ -28,7 +28,6 @@ resource "aws_db_instance" "main" {
   engine_version         = "14.2"
   username               = "postgres"
   password               = random_password.password.result
-  db_subnet_group_name   = var.subnet_group_name
   vpc_security_group_ids = [var.vpc_security_group_id]
   publicly_accessible    = false
   skip_final_snapshot    = true
