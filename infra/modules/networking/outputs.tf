@@ -10,5 +10,5 @@ output "private_subnets" {
 
 output "vpc_id" {
   description = "VPC identifier."
-  value = aws_vpc.main.id
+  value       = aws_vpc.main.id
 }

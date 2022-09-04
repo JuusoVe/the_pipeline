@@ -19,8 +19,8 @@ provider "aws" {
 }
 
 module "networking" {
-  source             = "./modules/networking"
-  private_subnets    = var.private_subnets
+  source          = "./modules/networking"
+  private_subnets = var.private_subnets
 }
 
 module "security-groups" {
@@ -43,8 +43,8 @@ module "database" {
 }
 
 module "policies" {
-  source = "./modules/policies"
-  region = var.region
+  source         = "./modules/policies"
+  region         = var.region
   rds_secret_arn = module.database.rds_secret_arn
   depends_on = [
     module.database

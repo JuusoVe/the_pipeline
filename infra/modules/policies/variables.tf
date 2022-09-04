@@ -1,5 +1,5 @@
 variable "region" {
-  
+
 }
 
 variable "rds_secret_arn" {
