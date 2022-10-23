@@ -17,6 +17,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Install Dependencies
+        working-directory: ./api
+        run: npm install --omit=dev
+
+      - name: Build typescipt
+        working-directory: ./api
+        run: npm run build
+
+      - name: Move node_modules to dist
+        working-directory: ./api
+        run: mv node_modules dist/node_modules
+
+      - name: Move entire dist to infra
+        working-directory: ./api
+        run: mv dist ../infra/dist
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:

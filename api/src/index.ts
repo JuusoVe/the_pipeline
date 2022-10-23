@@ -1,14 +1,15 @@
-import express from 'express';
-import { Request, Response } from 'express';
+import { Context, APIGatewayProxyResult, APIGatewayEvent } from 'aws-lambda';
 
-const app = express();
-const port = 5000;
-
-app.get('/', (_req: Request, res: Response) => {
-    const DATABASE_URI_IS_DEFINED = !process.env?.DATABASE_URI === undefined;
-    res.send('DB url is defined: ' + DATABASE_URI_IS_DEFINED);
-});
-
-app.listen(port, () => {
-    return console.log(`Express is listening at http://localhost:${port}`);
-});
+export const lambdaHandler = async (
+    event: APIGatewayEvent,
+    context: Context
+): Promise<APIGatewayProxyResult> => {
+    console.log(`Event: ${JSON.stringify(event, null, 2)}`);
+    console.log(`Context: ${JSON.stringify(context, null, 2)}`);
+    return {
+        statusCode: 200,
+        body: JSON.stringify({
+            message: 'hello world',
+        }),
+    };
+};
