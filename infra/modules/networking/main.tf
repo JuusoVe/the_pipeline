@@ -16,7 +16,7 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_db_subnet_group" "main" {
-  name = "private_subnet_group"
+  name = "the_pipeline_database_subnet_group"
   subnet_ids = concat([for subnet in aws_subnet.private : subnet.id],
   [for subnet in aws_subnet.private : subnet.id])
 
