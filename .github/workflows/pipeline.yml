@@ -19,7 +19,7 @@ jobs:
 
       - name: Install Dependencies
         working-directory: ./api
-        run: npm install --omit=dev
+        run: npm ci
 
       - name: Build typescipt
         working-directory: ./api
