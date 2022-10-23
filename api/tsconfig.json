@@ -10,7 +10,8 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "isolatedModules": true,
-        "types": ["aws-lambda"]
+        "types": ["aws-lambda"],
+        "outDir": "dist"
     },
     "include": ["src/**/*", "index.d.ts"],
     "exclude": ["node_modules", "**/*.test.ts"]
