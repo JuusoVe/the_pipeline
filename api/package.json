@@ -19,10 +19,10 @@
         "@typescript-eslint/eslint-plugin": "^5.35.1",
         "@typescript-eslint/parser": "^5.35.1",
         "eslint": "^8.23.0",
-        "typescript": "^4.8.2",
-        "@types/aws-lambda": "^8.10.108"
+        "typescript": "^4.8.2"
     },
     "dependencies": {
+        "@types/aws-lambda": "^8.10.108",
         "aws-lambda": "^1.0.7"
     }
 }
