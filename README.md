@@ -4,6 +4,11 @@
 
 This is a monorepo for and hobby/demo/template project combining a bunch of my favorite tech for a smooth CI-experience.
 
+TODO:
+- Deploy lambda using Terraform and Github actions
+- Deploy PSQL and connect lambda to it
+
+
 The tools:
 
 - [Terraform](https://www.terraform.io/) for Infra as Code

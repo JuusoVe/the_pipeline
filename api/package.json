@@ -7,7 +7,8 @@
     "description": "",
     "main": "dist/index.js",
     "scripts": {
-        "build": "tsc -p .",
+        "build": "esbuild ./src/index.ts --bundle --minify  --sourcemap --platform=node --target=es2020 --outfile=dist/index.js",
+        "build:pipeline": "npm run build && cd dist && zip -r api.zip index.js* && cp api.zip ../../infra",
         "test": "echo \"Error: no test specified\" && exit 1",
         "lint": "eslint . --ext .ts",
         "lint:fix": "eslint . --ext .ts --fix"
@@ -18,6 +19,7 @@
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^5.35.1",
         "@typescript-eslint/parser": "^5.35.1",
+        "esbuild": "^0.15.15",
         "eslint": "^8.23.0",
         "typescript": "^4.8.2"
     },
