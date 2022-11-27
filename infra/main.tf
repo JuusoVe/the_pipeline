@@ -32,71 +32,33 @@ locals {
 
 // STORAGE FOR LAMBDAS
 module "storage" {
+  description   = "S3 storage for zip-packaged lambda code."
   source        = "./modules/storage"
   api_file_name = "api.zip"
 }
 
 
 
+// API GATEWAY
+module "api_gateway" {
+  source      = "./modules/api-gateway"
+  description = "API gateway for lambdas."
+}
 
 // THE MAIN API LAMBDA FUNCTION
 module "main_api_lambda" {
   source                     = "./modules/main-api"
   lambda_bucket_id           = module.storage.lambda_bucket_id
   main_api_lambda_object_key = module.storage.main_api_lambda_object_key
+  gateway_id                 = module.api_gateway.gateway_id
 }
 
 
-// API GATEWAY
-resource "aws_apigatewayv2_api" "lambda" {
-  name          = "main_api_gw"
-  protocol_type = "HTTP"
-}
 
-resource "aws_apigatewayv2_stage" "lambda" {
-  api_id = aws_apigatewayv2_api.lambda.id
 
-  name        = "main_api_stage"
-  auto_deploy = true
 
-  access_log_settings {
-    destination_arn = aws_cloudwatch_log_group.api_gw.arn
 
-    format = jsonencode({
-      requestId               = "$context.requestId"
-      sourceIp                = "$context.identity.sourceIp"
-      requestTime             = "$context.requestTime"
-      protocol                = "$context.protocol"
-      httpMethod              = "$context.httpMethod"
-      resourcePath            = "$context.resourcePath"
-      routeKey                = "$context.routeKey"
-      status                  = "$context.status"
-      responseLength          = "$context.responseLength"
-      integrationErrorMessage = "$context.integrationErrorMessage"
-      }
-    )
-  }
-}
 
-resource "aws_apigatewayv2_integration" "main_api_lambda_integration" {
-  api_id = aws_apigatewayv2_api.lambda.id
-
-  integration_uri    = module.main_api_lambda.main_api_invoke_arn
-  integration_type   = "AWS_PROXY"
-  integration_method = "POST"
-}
-
-resource "aws_apigatewayv2_route" "main_api" {
-  api_id = aws_apigatewayv2_api.lambda.id
-
-  route_key = "GET /health"
-  target    = "integrations/${aws_apigatewayv2_integration.main_api_lambda_integration.id}"
-}
-
-resource "aws_cloudwatch_log_group" "api_gw" {
-  name              = "/aws/api_gw/${aws_apigatewayv2_api.lambda.name}"
-  retention_in_days = 30
-}
 
 resource "aws_lambda_permission" "api_gw" {
   statement_id  = "AllowExecutionFromAPIGateway"
