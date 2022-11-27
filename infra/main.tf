@@ -1,3 +1,4 @@
+// GENERAL
 terraform {
   cloud {
     organization = "juusove"
@@ -32,17 +33,19 @@ locals {
 
 // STORAGE FOR LAMBDAS
 module "storage" {
-  description   = "S3 storage for zip-packaged lambda code."
   source        = "./modules/storage"
-  api_file_name = "api.zip"
+  api_file_name = local.api_file_name
 }
 
-
-
 // API GATEWAY
-module "api_gateway" {
-  source      = "./modules/api-gateway"
-  description = "API gateway for lambdas."
+resource "aws_apigatewayv2_api" "gateway" {
+  name          = "main_api_gw"
+  protocol_type = "HTTP"
+}
+
+resource "aws_cloudwatch_log_group" "api_gw" {
+  name              = "/aws/api_gw/${aws_apigatewayv2_api.gateway.name}"
+  retention_in_days = 30
 }
 
 // THE MAIN API LAMBDA FUNCTION
@@ -50,7 +53,13 @@ module "main_api_lambda" {
   source                     = "./modules/main-api"
   lambda_bucket_id           = module.storage.lambda_bucket_id
   main_api_lambda_object_key = module.storage.main_api_lambda_object_key
-  gateway_id                 = module.api_gateway.gateway_id
+  gateway_id                 = aws_apigatewayv2_api.gateway.id
+  gateway_execution_arn      = aws_apigatewayv2_api.gateway.execution_arn
+  log_group_arn              = aws_cloudwatch_log_group.api_gw.arn
+  depends_on = [
+    module.storage,
+    aws_apigatewayv2_api.gateway
+  ]
 }
 
 
@@ -60,14 +69,7 @@ module "main_api_lambda" {
 
 
 
-resource "aws_lambda_permission" "api_gw" {
-  statement_id  = "AllowExecutionFromAPIGateway"
-  action        = "lambda:InvokeFunction"
-  function_name = module.main_api_lambda.main_api_function_name
-  principal     = "apigateway.amazonaws.com"
 
-  source_arn = "${aws_apigatewayv2_api.lambda.execution_arn}/*/*"
-}
 
 # module "networking" {
 #   source          = "./modules/networking"
