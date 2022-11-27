@@ -11,3 +11,8 @@ variable "subnet_group_name" {
   type        = string
   description = "The name of the subnetgroup that the DB will exist in."
 }
+
+variable "db_password" {
+  sensitive = true
+  type      = string
+}

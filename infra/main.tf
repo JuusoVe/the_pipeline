@@ -48,6 +48,74 @@ resource "aws_cloudwatch_log_group" "api_gw" {
   retention_in_days = 30
 }
 
+
+// PRIVATE NETWORKING FOR DB AND CONNECTIONS TO IT
+module "networking" {
+  source          = "./modules/networking"
+  private_subnets = var.private_subnets
+}
+
+module "security_groups" {
+  source = "./modules/security-groups"
+  region = var.region
+  vpc_id = module.networking.vpc_id
+  depends_on = [
+    module.networking
+  ]
+}
+
+// DATABASE AND REQUIRED SECRETS
+resource "random_password" "password" {
+  length  = 24
+  special = false
+}
+
+// THE MAIN DATABASE
+module "database" {
+  source                = "./modules/database"
+  vpc_security_group_id = module.security_groups.db_sg_id
+  availability_zone     = var.availability_zone
+  subnet_group_name     = module.networking.subnet_group_name
+  db_password           = random_password.password.result
+  depends_on = [
+    module.networking,
+    module.security_groups
+  ]
+}
+
+// SECRET TO ACCESS THE DB
+resource "aws_secretsmanager_secret" "rds_secret" {
+  name_prefix             = "rds-proxy-secret"
+  recovery_window_in_days = 0 # Allow permanent deletion without delay
+  description             = "Secret for RDS Proxy"
+}
+
+resource "aws_secretsmanager_secret_version" "rds_secret_version" {
+  secret_id = aws_secretsmanager_secret.rds_secret.id
+  secret_string = jsonencode({
+    "username"             = module.database.db_username
+    "password"             = random_password.password.result
+    "engine"               = "postgres"
+    "host"                 = module.database.db_host
+    "port"                 = module.database.db_port
+    "dbInstanceIdentifier" = module.database.db_instance_id
+  })
+}
+
+// DB PROXY FOR LAMBDA
+module "database_proxy" {
+  source                 = "./modules/database-proxy"
+  region                 = var.region
+  rds_secret_arn         = aws_secretsmanager_secret.rds_secret.arn
+  vpc_intra_subnets      = [for subnet in module.networking.private_subnets : subnet.id]
+  vpc_security_group_ids = [module.security_groups.db_sg_id]
+  depends_on = [
+    module.networking,
+    module.security_groups
+  ]
+}
+
+
 // THE MAIN API LAMBDA FUNCTION
 module "main_api_lambda" {
   source                     = "./modules/main-api"
@@ -56,50 +124,14 @@ module "main_api_lambda" {
   gateway_id                 = aws_apigatewayv2_api.gateway.id
   gateway_execution_arn      = aws_apigatewayv2_api.gateway.execution_arn
   log_group_arn              = aws_cloudwatch_log_group.api_gw.arn
+  vpc_intra_subnets          = [module.networking.private_subnets[0].id]
+  vpc_security_group_ids     = [module.security_groups.db_sg_id]
+  db_host                    = module.database_proxy.db_host
+  db_password                = random_password.password.result
+  db_username                = module.database.db_username
   depends_on = [
     module.storage,
-    aws_apigatewayv2_api.gateway
+    aws_apigatewayv2_api.gateway,
+    module.database
   ]
 }
-
-
-
-
-
-
-
-
-
-
-# module "networking" {
-#   source          = "./modules/networking"
-#   private_subnets = var.private_subnets
-# }
-
-# module "security-groups" {
-#   source = "./modules/security-groups"
-#   region = var.region
-#   vpc_id = module.networking.vpc_id
-#   depends_on = [
-#     module.networking
-#   ]
-# }
-
-# module "database" {
-#   source                = "./modules/database"
-#   vpc_security_group_id = module.security-groups.db_sg_id
-#   availability_zone     = var.availability_zone
-#   subnet_group_name     = module.networking.subnet_group_name
-#   depends_on = [
-#     module.networking
-#   ]
-# }
-
-# module "policies" {
-#   source         = "./modules/policies"
-#   region         = var.region
-#   rds_secret_arn = module.database.rds_secret_arn
-#   depends_on = [
-#     module.database
-#   ]
-# }

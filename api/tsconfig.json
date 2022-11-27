@@ -10,9 +10,19 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "isolatedModules": true,
-        "types": ["aws-lambda"],
+        "types": [
+            "aws-lambda",
+            "node",
+            "pg"
+        ],
         "outDir": "dist"
     },
-    "include": ["src/**/*", "index.d.ts"],
-    "exclude": ["node_modules", "**/*.test.ts"]
+    "include": [
+        "src/**/*",
+        "index.d.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.test.ts"
+    ]
 }

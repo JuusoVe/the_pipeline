@@ -8,11 +8,23 @@ resource "aws_lambda_function" "main_api" {
   handler = "index.lambdaHandler"
 
   role = aws_iam_role.lambda_exec.arn
+
+  vpc_config {
+    subnet_ids         = var.vpc_intra_subnets
+    security_group_ids = var.vpc_security_group_ids
+  }
+
+  environment {
+    variables = {
+      DB_HOST     = var.db_host
+      DB_PASSWORD = var.db_password
+      DB_USERNAME = var.db_username
+    }
+  }
 }
 
 resource "aws_cloudwatch_log_group" "main_api" {
-  name = "/aws/lambda/${aws_lambda_function.main_api.function_name}"
-
+  name              = "/aws/lambda/${aws_lambda_function.main_api.function_name}"
   retention_in_days = 30
 }
 
@@ -28,7 +40,7 @@ resource "aws_iam_role" "lambda_exec" {
       Principal = {
         Service = "lambda.amazonaws.com"
       }
-      }
+      },
     ]
   })
 }
@@ -75,6 +87,12 @@ resource "aws_apigatewayv2_route" "main_api" {
 resource "aws_iam_role_policy_attachment" "lambda_policy" {
   role       = aws_iam_role.lambda_exec.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+// Allow editing network resources. Required to run inside VPC.
+resource "aws_iam_role_policy_attachment" "AWSLambdaVPCAccessExecutionRole" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
 resource "aws_lambda_permission" "api_gw" {

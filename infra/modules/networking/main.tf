@@ -16,13 +16,12 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_db_subnet_group" "main" {
-  name = "the_pipeline_database_subnet_group"
-  subnet_ids = concat([for subnet in aws_subnet.private : subnet.id],
-  [for subnet in aws_subnet.private : subnet.id])
+  name       = "db_subnet_group"
+  subnet_ids = [for subnet in aws_subnet.private : subnet.id]
 
-  tags = {
-    Name = "DB subnet group"
-  }
+  depends_on = [
+    aws_subnet.private
+  ]
 }
 
 

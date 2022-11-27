@@ -23,15 +23,7 @@ jobs:
 
       - name: Build typescipt
         working-directory: ./api
-        run: npm run build
-
-      - name: Move node_modules to dist
-        working-directory: ./api
-        run: mv node_modules dist/node_modules
-
-      - name: Move entire dist to infra
-        working-directory: ./api
-        run: mv dist ../infra/dist
+        run: npm run build:pipeline
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2

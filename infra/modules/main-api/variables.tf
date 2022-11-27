@@ -23,3 +23,28 @@ variable "log_group_arn" {
   type        = string
 }
 
+variable "vpc_intra_subnets" {
+  description = "Private subnets CIDR list."
+  type        = list(string)
+}
+
+variable "vpc_security_group_ids" {
+  description = "Security group ids with access to the lambda."
+  type        = list(string)
+}
+
+variable "db_host" {
+  description = "URL of the rds proxy."
+  type        = string
+}
+
+variable "db_username" {
+  description = "Database connection username"
+  type        = string
+}
+
+variable "db_password" {
+  description = "Database password for connection url"
+  sensitive   = true
+  type        = string
+}

@@ -31,6 +31,10 @@ resource "aws_security_group" "sg_rds_proxy" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  depends_on = [
+    aws_security_group.sg_lambda
+  ]
 }
 
 # Allow connections from the SQL Proxy to the DB
@@ -51,6 +55,9 @@ resource "aws_security_group" "sg_rds" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  depends_on = [
+    aws_security_group.sg_rds_proxy
+  ]
 }
 
 
