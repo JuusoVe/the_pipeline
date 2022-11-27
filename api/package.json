@@ -7,13 +7,12 @@
     "description": "",
     "main": "dist/index.js",
     "scripts": {
-        "build": "esbuild ./src/index.ts --bundle --minify  --sourcemap --platform=node --target=es2020 --outfile=dist/index.js",
+        "build": "esbuild ./src/index.ts --bundle --platform=node --external:./node_modules/* --target=es2020 --outfile=dist/index.js",
         "build:pipeline": "npm run build && cd dist && zip -r api.zip index.js* && cp api.zip ../../infra",
         "test": "echo \"Error: no test specified\" && exit 1",
         "lint": "eslint . --ext .ts",
         "lint:fix": "eslint . --ext .ts --fix"
     },
-    "keywords": [],
     "author": "",
     "license": "ISC",
     "devDependencies": {
@@ -28,7 +27,7 @@
     "dependencies": {
         "@types/aws-lambda": "^8.10.108",
         "aws-lambda": "^1.0.7",
-        "pg": "^8.8.0",
+        "node-postgres": "^0.6.2",
         "postgres-migrations": "^5.3.0",
         "slonik": "^33.0.3"
     }

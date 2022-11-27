@@ -10,7 +10,6 @@ export const lambdaHandler = async (
     console.log(`Event: ${JSON.stringify(event, null, 2)}`);
     console.log(`Context: ${JSON.stringify(context, null, 2)}`);
     const { DB_HOST, DB_PASSWORD, DB_USERNAME } = process.env
-    // const pool = await createPool(`postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:5432`)
 
     const dbConfig = {
         database: "main",
@@ -18,6 +17,7 @@ export const lambdaHandler = async (
         password: DB_PASSWORD,
         host: DB_HOST,
         port: 5432,
+        ensureDatabaseExists: true
     }
 
     const client = new pg.Client(dbConfig) // or a Pool, or a PoolClient
