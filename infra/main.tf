@@ -37,46 +37,15 @@ module "storage" {
 }
 
 
-// THE ACTUAL MAIN FUNCTION
-resource "aws_lambda_function" "main_api" {
-  function_name = "MainAPI"
 
-  s3_bucket = module.storage.lambda_bucket_id
-  s3_key    = module.storage.main_api_lambda_object_key
 
-  runtime = "nodejs16.x"
-  handler = "index.lambdaHandler"
-
-  role = aws_iam_role.lambda_exec.arn
+// THE MAIN API LAMBDA FUNCTION
+module "main_api_lambda" {
+  source                     = "./modules/main-api"
+  lambda_bucket_id           = module.storage.lambda_bucket_id
+  main_api_lambda_object_key = module.storage.main_api_lambda_object_key
 }
 
-resource "aws_cloudwatch_log_group" "main_api" {
-  name = "/aws/lambda/${aws_lambda_function.main_api.function_name}"
-
-  retention_in_days = 30
-}
-
-resource "aws_iam_role" "lambda_exec" {
-  name = "main_api_lambda"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Sid    = ""
-      Principal = {
-        Service = "lambda.amazonaws.com"
-      }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "lambda_policy" {
-  role       = aws_iam_role.lambda_exec.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-}
 
 // API GATEWAY
 resource "aws_apigatewayv2_api" "lambda" {
@@ -109,10 +78,10 @@ resource "aws_apigatewayv2_stage" "lambda" {
   }
 }
 
-resource "aws_apigatewayv2_integration" "main_api" {
+resource "aws_apigatewayv2_integration" "main_api_lambda_integration" {
   api_id = aws_apigatewayv2_api.lambda.id
 
-  integration_uri    = aws_lambda_function.main_api.invoke_arn
+  integration_uri    = module.main_api_lambda.main_api_invoke_arn
   integration_type   = "AWS_PROXY"
   integration_method = "POST"
 }
@@ -121,19 +90,18 @@ resource "aws_apigatewayv2_route" "main_api" {
   api_id = aws_apigatewayv2_api.lambda.id
 
   route_key = "GET /health"
-  target    = "integrations/${aws_apigatewayv2_integration.main_api.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.main_api_lambda_integration.id}"
 }
 
 resource "aws_cloudwatch_log_group" "api_gw" {
-  name = "/aws/api_gw/${aws_apigatewayv2_api.lambda.name}"
-
+  name              = "/aws/api_gw/${aws_apigatewayv2_api.lambda.name}"
   retention_in_days = 30
 }
 
 resource "aws_lambda_permission" "api_gw" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.main_api.function_name
+  function_name = module.main_api_lambda.main_api_function_name
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "${aws_apigatewayv2_api.lambda.execution_arn}/*/*"
